@@ -67,6 +67,14 @@ canvas{display:block;width:100%;border-radius:10px;touch-action:manipulation}
 .role{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;line-height:1.45}
 .role b{font-family:var(--display)}
 #vLesson,#cvL{touch-action:pan-y}
+.quizgo{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:14px 16px;cursor:pointer}
+.quizgo b{font-family:var(--display);font-size:19px}
+.quizgo span{font-size:14px;opacity:.9}
+.qrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qrow .cbtn{width:100%}
+.qrow .cbtn[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+#qAfter{grid-template-columns:1fr}
+.score{font-family:var(--display);font-size:44px;line-height:1;color:var(--accent);display:block;margin:4px 0}
 .frow{display:flex;gap:8px;align-items:center;min-width:0}
 .flab{flex:0 0 auto;width:64px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .frow .chips{flex-wrap:nowrap;overflow-x:auto;min-width:0;padding-bottom:2px;scrollbar-width:none}
@@ -95,6 +103,7 @@ canvas{display:block;width:100%;border-radius:10px;touch-action:manipulation}
   <section id="vList">
     <div class="boardbox">
       <div class="frow"><span class="flab" data-i="phase"></span><div class="chips" id="chP"></div></div><div class="frow"><span class="flab" data-i="level"></span><div class="chips" id="chV"></div></div><div class="frow"><span class="flab" data-i="pos"></span><div class="chips" id="chips"></div></div>
+      <button class="quizgo" id="quizGo"><b data-i="quiz"></b><span id="quizSub"></span></button>
       <div class="packhead"><h2 data-i="pack"></h2><span id="count"></span></div>
       <div class="grid" id="grid"></div>
       <p class="soon" data-i="soon"></p>
@@ -116,6 +125,20 @@ canvas{display:block;width:100%;border-radius:10px;touch-action:manipulation}
         <div class="dots" id="dots"></div>
       </div>
       <div class="lnav"><button class="cbtn" id="pl">‹ <span data-i="prevL"></span></button><span class="hint" data-i="swipe"></span><button class="cbtn" id="nl"><span data-i="nextL"></span> ›</button></div>
+    </div>
+  </section>
+
+  <section id="vQuiz" hidden>
+    <div class="boardbox">
+      <button class="back" id="qBack">← <span data-i="backAll"></span></button>
+      <div class="lmeta" id="qMeta"></div>
+      <h2 class="ltitle" id="qTitle"></h2>
+      <canvas id="cvQ" aria-label="Board"></canvas>
+      <div class="narr" id="qNarr" aria-live="polite"></div>
+      <div class="qrow" id="qOpts"><button class="cbtn" id="qA"></button><button class="cbtn" id="qB"></button></div>
+      <div class="qrow" id="qPick"><button class="cbtn main" id="qPA"></button><button class="cbtn main" id="qPB"></button></div>
+      <div class="qrow" id="qAfter" hidden><button class="cbtn main" id="qNext"></button></div>
+      <div class="qrow" id="qEndBtns" hidden><button class="cbtn main" id="qAgain"></button><button class="cbtn" id="qHome"></button></div>
     </div>
   </section>
 
@@ -143,6 +166,12 @@ de:{pack:'Lektionsbibliothek',soon:'Die Bibliothek wächst weiter. Die Bibliothe
 en:{pack:'Lesson library',soon:'The library keeps growing. The library keeps growing. Suggestions for positions or situations are welcome.',phase:'Phase',level:'Level',pos:'Position',def:'Out of possession',att:'In possession',trans:'Transition',set:'Set pieces',lv1:'Beginner',lv2:'Intermediate',lv3:'Advanced',prevL:'Previous',nextL:'Next',swipe:'Swipe to change lesson',of:'/'},
 fr:{pack:'Bibliothèque de leçons',soon:'La bibliothèque continue de grandir. La bibliothèque continue de grandir. Les suggestions de postes ou de situations sont bienvenues.',phase:'Phase',level:'Niveau',pos:'Poste',def:'Sans ballon',att:'Avec ballon',trans:'Transition',set:'Coups de pied arrêtés',lv1:'Débutant',lv2:'Intermédiaire',lv3:'Avancé',prevL:'Précédente',nextL:'Suivante',swipe:'Glisse pour changer de leçon',of:'/'}};
 for(const l in UI2)Object.assign(UI[l],UI2[l]);
+const UI3={
+tr:{quiz:'Sen karar ver',quizSub:'{n} pozisyon · iki hareketi izle, doğruyu seç',optA:'A’yı izle',optB:'B’yi izle',pickA:'A doğru',pickB:'B doğru',ask:'Pozisyon dondu. İki seçeneği izle ve hangisinin doğru olduğuna karar ver.',watching:'Seçenek {x}',yes:'Doğru karar!',no:'Yanlış. Doğrusu {x} seçeneğiydi.',nextQ:'Sonraki pozisyon',finish:'Sonucu gör',result:'Doğru karar',again:'Yeni seri',home:'Derslere dön',best:'Rekor',q:'Soru'},
+de:{quiz:'Du entscheidest',quizSub:'{n} Szenen · zwei Lösungen ansehen, die richtige wählen',optA:'A ansehen',optB:'B ansehen',pickA:'A ist richtig',pickB:'B ist richtig',ask:'Die Szene ist eingefroren. Sieh dir beide Lösungen an und entscheide, welche richtig ist.',watching:'Lösung {x}',yes:'Richtig entschieden!',no:'Falsch. Richtig war {x}.',nextQ:'Nächste Szene',finish:'Ergebnis',result:'Richtige Entscheidungen',again:'Neue Serie',home:'Zu den Lektionen',best:'Rekord',q:'Frage'},
+en:{quiz:'You decide',quizSub:'{n} situations · watch two moves, pick the right one',optA:'Watch A',optB:'Watch B',pickA:'A is right',pickB:'B is right',ask:'The play is frozen. Watch both options and decide which one is right.',watching:'Option {x}',yes:'Right call!',no:'Wrong. The right one was {x}.',nextQ:'Next situation',finish:'See result',result:'Right decisions',again:'New series',home:'Back to lessons',best:'Best',q:'Question'},
+fr:{quiz:'À toi de décider',quizSub:'{n} situations · regarde deux options, choisis la bonne',optA:'Voir A',optB:'Voir B',pickA:'A est juste',pickB:'B est juste',ask:'L’action est figée. Regarde les deux options et décide laquelle est juste.',watching:'Option {x}',yes:'Bonne décision !',no:'Faux. La bonne était {x}.',nextQ:'Situation suivante',finish:'Voir le résultat',result:'Bonnes décisions',again:'Nouvelle série',home:'Retour aux leçons',best:'Record',q:'Question'}};
+for(const l in UI3)Object.assign(UI[l],UI3[l]);
 const ROLE={
 tr:{GK:['Kaleci','KL'],CB:['Stoper','STP'],FB:['Bek','BEK'],WB:['Kanat bek','KB'],DM:['Ön libero (6)','6'],CM:['Merkez orta saha (8)','8'],AM:['On numara (10)','10'],W:['Kanat','KNT'],ST:['Forvet (9)','9']},
 de:{GK:['Torwart','TW'],CB:['Innenverteidiger','IV'],FB:['Außenverteidiger','AV'],WB:['Schienenspieler','SS'],DM:['Sechser','6'],CM:['Achter','8'],AM:['Zehner','10'],W:['Flügelspieler','FL'],ST:['Stürmer','9']},
@@ -631,7 +660,7 @@ const loc=o=>o?(o[lang]||o.tr):'';
 let filter='all',cur=null,variant='good',step=0,anim=1,playing=false,hold=0,formation=store.get('ttsc_taktik_form')||'4-1-4-1',phase=0,fk=1,sel=-1;
 if(!FORM[formation])formation='4-1-4-1';
 
-function applyLang(){document.documentElement.lang=lang;document.querySelectorAll('[data-i]').forEach(el=>el.textContent=t(el.dataset.i));$('lang').value=lang;renderList();renderFChips();if(cur)renderLessonText();renderRole()}
+function applyLang(){document.documentElement.lang=lang;document.querySelectorAll('[data-i]').forEach(el=>el.textContent=t(el.dataset.i));$('lang').value=lang;renderList();renderFChips();if(cur)renderLessonText();renderRole();if(qList.length&&!$('vQuiz').hidden)renderQ()}
 
 // ---------- list ----------
 let fPhase='all',fLvl='all';
@@ -640,6 +669,7 @@ function filtered(){return LESSONS.filter(l=>(filter==='all'||l.tags.includes(fi
   .sort((a,b)=>a.lvl-b.lvl||PHASES.indexOf(a.phase)-PHASES.indexOf(b.phase))}
 function chipRow(box,items,curv,set){box.innerHTML='';items.forEach(([v,label])=>{const b=document.createElement('button');b.className='chip';b.textContent=label;b.setAttribute('aria-pressed',String(curv)===String(v));b.onclick=()=>{set(v);renderList()};box.appendChild(b)})}
 function renderList(){
+  const nq=Math.min(QN,filtered().filter(l=>diverge(l)>0).length);$('quizSub').textContent=t('quizSub').replace('{n}',nq);$('quizGo').disabled=nq===0;
   chipRow($('chP'),[['all',t('all')],...PHASES.map(p=>[p,t(p)])],fPhase,v=>fPhase=v);
   chipRow($('chV'),[['all',t('all')],[1,t('lv1')],[2,t('lv2')],[3,t('lv3')]],fLvl,v=>fLvl=v);
   const used=[...new Set(LESSONS.flatMap(l=>l.tags))];
@@ -656,7 +686,10 @@ function renderList(){
 function route(){
   const h=location.hash.slice(1);
   const lesson=h.startsWith('ders-')?LESSONS.find(l=>'ders-'+l.id===h):null;
-  $('vList').hidden=!!lesson||h==='dizilis';$('vLesson').hidden=!lesson;$('vForm').hidden=h!=='dizilis';
+  const quiz=h==='karar';
+  $('vList').hidden=!!lesson||h==='dizilis'||quiz;$('vLesson').hidden=!lesson;$('vForm').hidden=h!=='dizilis';$('vQuiz').hidden=!quiz;
+  if(quiz&&!qList.length){location.hash='dersler';return}
+  if(quiz)sizeQ();
   $('tabL').setAttribute('aria-selected',h!=='dizilis');$('tabF').setAttribute('aria-selected',h==='dizilis');
   if(lesson)openLesson(lesson);else{cur=null;playing=false}
   if(h==='dizilis'){fk=1;sizeAll()}
@@ -666,12 +699,19 @@ $('tabL').onclick=()=>{location.hash='dersler'};$('tabF').onclick=()=>{location.
 $('back').onclick=()=>{location.hash='dersler'};
 
 // ---------- lesson engine ----------
-function steps(){return[cur.intro,...cur[variant]]}
-function stateAt(i){
-  const pos={};cur.actors.forEach(a=>pos[a[0]]=[a[2],a[3]]);let ball=cur.ball,line=null;
-  const s=steps();for(let j=0;j<=i;j++){const st=s[j];if(st.p)for(const k in st.p)pos[k]=st.p[k];if(st.ball!==undefined)ball=st.ball;line=st.line||null}
+function stepsOf(l,v){return[l.intro,...l[v]]}
+function stateOf(l,v,i){
+  const pos={};l.actors.forEach(a=>pos[a[0]]=[a[2],a[3]]);let ball=l.ball,line=null;
+  const s=stepsOf(l,v);for(let j=0;j<=Math.min(i,s.length-1);j++){const st=s[j];if(st.p)for(const k in st.p)pos[k]=st.p[k];if(st.ball!==undefined)ball=st.ball;line=st.line||null}
   return{pos,ball,line};
 }
+function steps(){return stepsOf(cur,variant)}
+function stateAt(i){return stateOf(cur,variant,i)}
+// first step where the right and wrong versions really differ on the pitch
+function bxy(st){return typeof st.ball==='string'?st.pos[st.ball]:st.ball}
+function diverge(l){const n=Math.min(l.good.length,l.bad.length);for(let j=1;j<=n;j++){const a=stateOf(l,'good',j),b=stateOf(l,'bad',j);
+  const far=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1])>2;
+  if(Object.keys(a.pos).some(id=>far(a.pos[id],b.pos[id]))||far(bxy(a),bxy(b)))return j}return 0}
 function openLesson(l){
   const same=cur===l;cur=l;if(!same){variant='bad';step=0;anim=1;playing=autoPlay;hold=0}
   autoPlay=false;sizeAll();renderLessonText();
@@ -711,7 +751,7 @@ const cvL=$('cvL'),cvF=$('cvF'),gL=cvL.getContext('2d'),gF=cvF.getContext('2d');
 function size(cv,view){const w=cv.parentElement.clientWidth||340;const v=VIEWS[view];let ar=(v[3]-v[1])/(v[2]-v[0]);let cw=w,ch=w*ar;const maxH=Math.max(320,window.innerHeight*.62);if(ch>maxH){ch=maxH;cw=ch/ar}
   cv.style.width=cw+'px';cv.style.height=ch+'px';const d=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(cw*d);cv.height=Math.round(ch*d);cv._v=v;cv._s=cv.width/(v[2]-v[0]);cv._d=d}
 function sizeAll(){if(!$('vLesson').hidden)size(cvL,cur?cur.view:'def');if(!$('vForm').hidden)size(cvF,'full')}
-window.addEventListener('resize',sizeAll);
+window.addEventListener('resize',()=>{sizeAll();if(!$('vQuiz').hidden)sizeQ()});
 const P=(cv,x,y)=>[(x-cv._v[0])*cv._s,(y-cv._v[1])*cv._s];
 function pitch(g,cv){
   const v=cv._v;g.setTransform(1,0,0,1,0,0);g.fillStyle='#1d3a31';g.fillRect(0,0,cv.width,cv.height);
@@ -744,15 +784,16 @@ function arrow(g,cv,x1,y1,x2,y2,kind,alpha){
 }
 const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
 function ballXY(st,pos){if(typeof st.ball==='string'){const p=pos[st.ball];return[p[0]+1.1,p[1]-1.4]}return st.ball}
-function drawLesson(){
-  const g=gL,cv=cvL;if(!cv._v)return;pitch(g,cv);
-  const a=stateAt(Math.max(0,step-1)),b=stateAt(step),k=ease(Math.min(1,anim));
+function drawLesson(){drawScene(gL,cvL,cur,variant,step,anim,false)}
+function drawScene(g,cv,l,v,i,an,neutral){
+  if(!cv._v)return;pitch(g,cv);
+  const a=stateOf(l,v,Math.max(0,i-1)),b=stateOf(l,v,i),k=ease(Math.min(1,an)),anim=an;
   const pos={};for(const id in b.pos){const p0=a.pos[id],p1=b.pos[id];pos[id]=[p0[0]+(p1[0]-p0[0])*k,p0[1]+(p1[1]-p0[1])*k]}
-  const s=steps()[step];
-  if(b.line){const[x0,y0]=P(cv,0,b.line[0]),[x1]=P(cv,68,b.line[0]);g.strokeStyle=b.line[1]==='bad'?'#ff6b55':'#8af0c0';g.lineWidth=2*cv._d;g.setLineDash([8*cv._d,6*cv._d]);g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y0);g.stroke();g.setLineDash([])}
-  if(s.zone){const[zx,zy]=P(cv,s.zone[0],s.zone[1]);g.globalAlpha=Math.min(1,anim*1.5)*.45;g.fillStyle=s.zone[3]==='bad'?'#ff5d4a':'#5fe3a8';g.beginPath();g.arc(zx,zy,s.zone[2]*cv._s,0,Math.PI*2);g.fill();g.globalAlpha=1}
+  const s=stepsOf(l,v)[i];
+  if(b.line){const[x0,y0]=P(cv,0,b.line[0]),[x1]=P(cv,68,b.line[0]);g.strokeStyle=neutral?'rgba(235,245,240,.75)':b.line[1]==='bad'?'#ff6b55':'#8af0c0';g.lineWidth=2*cv._d;g.setLineDash([8*cv._d,6*cv._d]);g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y0);g.stroke();g.setLineDash([])}
+  if(s.zone&&!neutral){const[zx,zy]=P(cv,s.zone[0],s.zone[1]);g.globalAlpha=Math.min(1,anim*1.5)*.45;g.fillStyle=s.zone[3]==='bad'?'#ff5d4a':'#5fe3a8';g.beginPath();g.arc(zx,zy,s.zone[2]*cv._s,0,Math.PI*2);g.fill();g.globalAlpha=1}
   if(s.arrows)s.arrows.forEach(r=>arrow(g,cv,r[0],r[1],r[2],r[3],r[4],Math.min(1,.25+anim)));
-  cur.actors.forEach(ac=>{const p=pos[ac[0]];disc(g,cv,p[0],p[1],ac[1],ac[1]==='us'?ac[0]:'')});
+  l.actors.forEach(ac=>{const p=pos[ac[0]];disc(g,cv,p[0],p[1],ac[1],ac[1]==='us'?ac[0]:'')});
   const b0=ballXY(a,pos),b1=ballXY(b,pos),bx=b0[0]+(b1[0]-b0[0])*k,by=b0[1]+(b1[1]-b0[1])*k;const[px,py]=P(cv,bx,by);
   g.fillStyle='#ffffff';g.beginPath();g.arc(px,py,4.5*cv._d,0,Math.PI*2);g.fill();g.strokeStyle='#111';g.lineWidth=1.2*cv._d;g.stroke();
 }
@@ -770,10 +811,50 @@ function renderRole(){const box=$('role');if(sel<0){box.textContent=t('tapHint')
 cvF.addEventListener('pointerdown',e=>{const rc=cvF.getBoundingClientRect();const mx=(e.clientX-rc.left)*cvF._d,my=(e.clientY-rc.top)*cvF._d;let best=-1,bd=26*cvF._d;
   FORM[formation].forEach((r,i)=>{const p=fpos(i),[px,py]=P(cvF,p[0],p[1]);const d=Math.hypot(px-mx,py-my);if(d<bd){bd=d;best=i}});sel=best;renderRole()});
 
+// ---------- quiz ----------
+const QN=8,cvQ=$('cvQ'),gQ=cvQ.getContext('2d');
+let qList=[],qi=0,qScore=0,qMap={},qPhase='ask',qPrev=null,qPS=0,qk=1,qD=0,qStep=0,qHold=0,qPicked=null;
+function sizeQ(){if(qList[qi])size(cvQ,qList[qi].view)}
+function startQuiz(){const pool=filtered().filter(l=>diverge(l)>0);for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  qList=pool.slice(0,QN);qi=0;qScore=0;if(!qList.length)return;setupQ();location.hash='karar'}
+function setupQ(){const l=qList[qi];qMap=Math.random()<.5?{A:'good',B:'bad'}:{A:'bad',B:'good'};qPhase='ask';qPrev=null;qPS=0;qk=1;qD=diverge(l);qStep=0;qHold=0;qPicked=null;sizeQ();renderQ();window.scrollTo(0,0)}
+function renderQ(){const l=qList[qi];if(!l)return;
+  $('qMeta').innerHTML=`<span class="badge">${t(l.phase)}</span><span class="badge lv">${t('lv'+l.lvl)}</span><span>${t('q')} ${qi+1}${t('of')}${qList.length} · ${qScore} ✓</span>`;
+  $('qTitle').textContent=loc(l.title);
+  const n=$('qNarr');
+  if(qPhase==='end'){const pct=Math.round(qScore/qList.length*100);const prev=+(store.get('ttsc_taktik_quiz_best')||0);if(pct>prev)store.set('ttsc_taktik_quiz_best',pct);
+    $('qMeta').innerHTML='';$('qTitle').textContent=t('result');n.className='narr good';n.innerHTML=`<span class="score">${qScore}/${qList.length}</span><span class="k">${t('best')}: ${Math.max(prev,pct)}%</span>`;
+    try{window.parent.postMessage({source:'ttsc-games',game:'taktik-karar',score:qScore,questions:qList.length,accuracy:pct,lessons:qList.map(x=>x.id)},'*')}catch(e){}}
+  else if(qPhase==='ask'){n.className='narr';n.innerHTML='<span class="k"></span><span></span>';n.firstChild.textContent=qPrev?t('watching').replace('{x}',qPrev):'';n.lastChild.textContent=t('ask')}
+  else{const s=stepsOf(l,'good');const ok=qMap[qPicked]==='good';const right=qMap.A==='good'?'A':'B';n.className='narr '+(ok?'good':'bad');
+    n.innerHTML='<span class="k"></span><span></span>';n.firstChild.textContent=(ok?t('yes'):t('no').replace('{x}',right))+' · '+t('right')+' '+(qStep+1)+'/'+s.length;n.lastChild.textContent=loc(s[qStep].txt)}
+  $('qOpts').hidden=$('qPick').hidden=qPhase!=='ask';
+  $('qA').textContent=t('optA');$('qB').textContent=t('optB');$('qPA').textContent=t('pickA');$('qPB').textContent=t('pickB');
+  $('qA').setAttribute('aria-pressed',qPrev==='A');$('qB').setAttribute('aria-pressed',qPrev==='B');
+  $('qAfter').hidden=!(qPhase==='reveal'&&qStep>=stepsOf(l,'good').length-1&&qk>=1);
+  $('qNext').textContent=qi>=qList.length-1?t('finish'):t('nextQ');
+  $('qEndBtns').hidden=qPhase!=='end';$('qAgain').textContent=t('again');$('qHome').textContent=t('home');
+  $('cvQ').hidden=qPhase==='end';
+}
+function watch(x){if(qPhase!=='ask')return;qPrev=x;qPS=1;qk=0;renderQ()}
+function pick(x){if(qPhase!=='ask')return;qPicked=x;if(qMap[x]==='good')qScore++;qPhase='reveal';qStep=0;qk=1;qHold=0;renderQ()}
+$('quizGo').onclick=startQuiz;
+$('qA').onclick=()=>watch('A');$('qB').onclick=()=>watch('B');$('qPA').onclick=()=>pick('A');$('qPB').onclick=()=>pick('B');
+$('qNext').onclick=()=>{if(qi>=qList.length-1){qPhase='end';renderQ()}else{qi++;setupQ()}};
+$('qAgain').onclick=()=>{startQuiz()};$('qHome').onclick=()=>{qList=[];location.hash='dersler'};
+$('qBack').onclick=()=>{qList=[];location.hash='dersler'};
+function quizTick(dt){const l=qList[qi];if(!l||qPhase==='end')return;
+  if(qPhase==='ask'){if(!qPrev){drawScene(gQ,cvQ,l,'good',0,1,true);return}
+    const v=qMap[qPrev];if(qk<1)qk=Math.min(1,qk+dt/1.1);else if(qPS<qD){qPS++;qk=0}
+    drawScene(gQ,cvQ,l,v,qPS,qk,true)}
+  else{const s=stepsOf(l,'good');if(qk<1)qk=Math.min(1,qk+dt/1.2);else if(qStep<s.length-1){qHold+=dt;if(qHold>1.4+loc(s[qStep].txt).length*.03){qStep++;qk=0;qHold=0;renderQ()}}else if($('qAfter').hidden)renderQ();
+    drawScene(gQ,cvQ,l,'good',qStep,qk,false)}}
+
 // ---------- loop ----------
 let last=performance.now();
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   if(cur&&!$('vLesson').hidden){if(anim<1)anim=Math.min(1,anim+dt/1.2);else if(playing){hold+=dt;const txt=loc(steps()[step].txt);if(hold>1.6+txt.length*.035){if(step<steps().length-1)go(step+1);else{playing=false;renderLessonText()}}}drawLesson()}
+  if(!$('vQuiz').hidden)quizTick(dt);
   if(!$('vForm').hidden){if(fk<1)fk=Math.min(1,fk+dt/1.3);drawForm()}
   requestAnimationFrame(loop)}
 $('lang').onchange=e=>{lang=e.target.value;store.set('ttsc_lang',lang);applyLang()};

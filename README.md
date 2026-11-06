@@ -10,4 +10,6 @@ Animasyonlu pozisyon eğitimi. Tek dosya (index.html), GitHub Pages ile yayınla
 - `actors`: `[id, 'us'|'op', x, y]`
 - `intro`, `good[]`, `bad[]`: adımlar. Her adım: `p` (yeni konumlar), `ball` (oyuncu id veya [x,y]), `arrows` (`[x1,y1,x2,y2,'run'|'pass'|'press'|'guide']`), `zone` (`[x,y,r,'good'|'bad']`), `line` (`[y,'good'|'bad']`), `txt` (4 dil).
 
+**Sen karar ver:** seçili filtreden 8 pozisyon. Her biri donar, iki hareket (A/B) ipucusuz izlenir, oyuncu doğruyu seçer, sonra doğrusu anlatımla oynar. Sonuç `postMessage` ile gönderilir: `{source:'ttsc-games', game:'taktik-karar', score, questions, accuracy, lessons}`.
+
 Doğrudan bir derse link: `#ders-markaj`, dizilişler: `#dizilis`.
