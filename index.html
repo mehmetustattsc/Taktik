@@ -1,0 +1,373 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}[hidden]{display:none!important}</style>
+<title>Taktik</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: coaching playbook — tab bar, then either a lesson library (cards by position) or a board view with narration under the pitch */
+:root{
+  --bg:#f2f5f3; --surface:#ffffff; --ink:#13201b; --muted:#5d6e66; --line:#d5ddd8;
+  --accent:#0f6b54; --accent-ink:#ffffff; --bad:#c2412b; --good:#16794f;
+  --display:'Archivo','Arial Narrow',sans-serif; --body:'Source Sans 3',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1411; --surface:#131e19; --ink:#e4ede8; --muted:#90a39a; --line:#25352d;
+  --accent:#5fd3a5; --accent-ink:#06231a; --bad:#ff8a73; --good:#6fe0a8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1411; --surface:#131e19; --ink:#e4ede8; --muted:#90a39a; --line:#25352d;
+  --accent:#5fd3a5; --accent-ink:#06231a; --bad:#ff8a73; --good:#6fe0a8; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;margin:0;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:760px;margin:0 auto;box-sizing:border-box;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 32px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.01em;margin:0;line-height:1}
+h1 small{display:block;font:600 12px var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+select{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:600 13px var(--body)}
+button{font-family:var(--body)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px;font:700 15px var(--body);color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--surface);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 14px var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.packhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.packhead h2{font-family:var(--display);font-size:20px;margin:0}
+.packhead span{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;color:var(--ink);min-width:0}
+.lcard:hover{border-color:var(--accent)}
+.lcard b{font-family:var(--display);font-size:17px;line-height:1.2}
+.lcard p{margin:0;color:var(--muted);font-size:14px;line-height:1.4}
+.tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.soon{color:var(--muted);font-size:14px;margin:0}
+.boardbox{display:flex;flex-direction:column;gap:10px}
+.back{align-self:flex-start;background:none;border:0;color:var(--accent);font:700 14px var(--body);cursor:pointer;padding:4px 0}
+.ltitle{font-family:var(--display);font-size:24px;margin:0;line-height:1.15;text-wrap:balance}
+canvas{display:block;width:100%;border-radius:10px;touch-action:manipulation}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;align-self:flex-start}
+.seg button{background:var(--surface);border:0;padding:8px 14px;font:700 14px var(--body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"].w{background:var(--bad);color:#fff}
+.seg button[aria-pressed="true"].r{background:var(--good);color:#fff}
+.seg button[aria-pressed="true"].n{background:var(--accent);color:var(--accent-ink)}
+.narr{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:12px 14px;min-height:56px;font-size:17px;line-height:1.45}
+.narr.bad{border-left-color:var(--bad)} .narr.good{border-left-color:var(--good)}
+.narr .k{display:block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;font-variant-numeric:tabular-nums}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cbtn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:700 15px var(--body);color:var(--ink);cursor:pointer;min-width:48px}
+.cbtn.main{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cbtn:disabled{opacity:.4}
+.dots{display:flex;gap:5px;margin-left:auto}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.dot.on{background:var(--accent)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-2px;margin-right:5px}
+.role{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;line-height:1.45}
+.role b{font-family:var(--display)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Taktik<small data-i="sub"></small></h1>
+    <select id="lang" aria-label="Language"><option value="tr">TR</option><option value="de">DE</option><option value="en">EN</option><option value="fr">FR</option></select>
+  </header>
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tabL" role="tab" data-i="lessons"></button>
+    <button class="tab" id="tabF" role="tab" data-i="formations"></button>
+  </div>
+
+  <section id="vList">
+    <div class="boardbox">
+      <div class="chips" id="chips"></div>
+      <div class="packhead"><h2 data-i="pack"></h2><span id="count"></span></div>
+      <div class="grid" id="grid"></div>
+      <p class="soon" data-i="soon"></p>
+    </div>
+  </section>
+
+  <section id="vLesson" hidden>
+    <div class="boardbox">
+      <button class="back" id="back">← <span data-i="backAll"></span></button>
+      <h2 class="ltitle" id="lTitle"></h2>
+      <div class="seg" id="variant"><button class="w" id="vBad" data-i="wrong"></button><button class="r" id="vGood" data-i="right"></button></div>
+      <canvas id="cvL" aria-label="Board"></canvas>
+      <div class="legend"><span><i style="background:#ffffff;border:1px solid #9aa"></i><span data-i="us"></span></span><span><i style="background:#e4573d"></i><span data-i="them"></span></span><span><i style="background:#f5b83d"></i><span data-i="moves"></span></span></div>
+      <div class="narr" id="narr" aria-live="polite"></div>
+      <div class="ctrl">
+        <button class="cbtn" id="prev" aria-label="Prev">◀</button>
+        <button class="cbtn main" id="play"></button>
+        <button class="cbtn" id="next" aria-label="Next">▶</button>
+        <div class="dots" id="dots"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="vForm" hidden>
+    <div class="boardbox">
+      <div class="chips" id="fchips"></div>
+      <div class="seg" id="phase"><button class="n" id="pDef" data-i="defense"></button><button class="n" id="pAtt" data-i="attack"></button></div>
+      <canvas id="cvF" aria-label="Formation"></canvas>
+      <div class="role" id="role"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+// ================= text =================
+const UI={
+tr:{sub:'Pozisyon eğitimi',lessons:'Dersler',formations:'Dizilişler',all:'Hepsi',backAll:'Tüm dersler',wrong:'Yanlış',right:'Doğru',play:'Oynat',pause:'Durdur',again:'Baştan',us:'Biz',them:'Rakip',moves:'Koşu / pas',defense:'Savunma',attack:'Hücum',tapHint:'Bir oyuncuya dokun, o fazdaki görevini gör.',pack:'Savunma paketi',lessonsN:'{n} ders',step:'Adım',soon:'Sıradaki paketler: orta saha (çevre kontrolü, pas bağlantısı), kanat oyunu (bindirme, içe kat etme), hücum.'},
+de:{sub:'Positionstraining',lessons:'Lektionen',formations:'Grundordnungen',all:'Alle',backAll:'Alle Lektionen',wrong:'Falsch',right:'Richtig',play:'Abspielen',pause:'Pause',again:'Von vorn',us:'Wir',them:'Gegner',moves:'Lauf / Pass',defense:'Defensive',attack:'Offensive',tapHint:'Tippe auf einen Spieler, um seine Aufgabe zu sehen.',pack:'Defensiv-Paket',lessonsN:'{n} Lektionen',step:'Schritt',soon:'Als Nächstes: Mittelfeld (Scanning, Passverbindungen), Flügelspiel (Hinterlaufen, nach innen ziehen), Angriff.'},
+en:{sub:'Position training',lessons:'Lessons',formations:'Formations',all:'All',backAll:'All lessons',wrong:'Wrong',right:'Right',play:'Play',pause:'Pause',again:'Restart',us:'Us',them:'Opponent',moves:'Run / pass',defense:'Defending',attack:'Attacking',tapHint:'Tap a player to see their job in this phase.',pack:'Defending pack',lessonsN:'{n} lessons',step:'Step',soon:'Coming next: midfield (scanning, passing links), wing play (overlaps, cutting inside), attacking.'},
+fr:{sub:'Formation par poste',lessons:'Leçons',formations:'Systèmes',all:'Tous',backAll:'Toutes les leçons',wrong:'Faux',right:'Juste',play:'Lire',pause:'Pause',again:'Rejouer',us:'Nous',them:'Adversaire',moves:'Course / passe',defense:'Défense',attack:'Attaque',tapHint:'Touche un joueur pour voir son rôle dans cette phase.',pack:'Pack défense',lessonsN:'{n} leçons',step:'Étape',soon:'Bientôt : milieu (scanning, liaisons), jeu sur les ailes (débordement, repiquer), attaque.'}
+};
+const ROLE={
+tr:{GK:['Kaleci','KL'],CB:['Stoper','STP'],FB:['Bek','BEK'],WB:['Kanat bek','KB'],DM:['Ön libero (6)','6'],CM:['Merkez orta saha (8)','8'],AM:['On numara (10)','10'],W:['Kanat','KNT'],ST:['Forvet (9)','9']},
+de:{GK:['Torwart','TW'],CB:['Innenverteidiger','IV'],FB:['Außenverteidiger','AV'],WB:['Schienenspieler','SS'],DM:['Sechser','6'],CM:['Achter','8'],AM:['Zehner','10'],W:['Flügelspieler','FL'],ST:['Stürmer','9']},
+en:{GK:['Goalkeeper','GK'],CB:['Centre-back','CB'],FB:['Full-back','FB'],WB:['Wing-back','WB'],DM:['Holding midfielder (6)','6'],CM:['Central midfielder (8)','8'],AM:['Number 10','10'],W:['Winger','W'],ST:['Striker (9)','9']},
+fr:{GK:['Gardien','G'],CB:['Défenseur central','DC'],FB:['Latéral','LAT'],WB:['Piston','PIS'],DM:['Milieu défensif (6)','6'],CM:['Milieu relayeur (8)','8'],AM:['Meneur (10)','10'],W:['Ailier','AIL'],ST:['Avant-centre (9)','9']}
+};
+const JOB={
+tr:{GK:['Savunma arkasını kontrol et, hattı konuşarak yönet.','Oyun kurmaya katıl, kısa ve uzun seçeneği gör.'],CB:['Hattı birlikte tut, öndeki forveti kontrol et.','Genişle, topu ileri taşı veya hattı kıran pası ara.'],FB:['Kanadı kapat, içteki stoperle mesafeni koru.','Kanattan bindir. Kanat içeri kat ederse çizgi senin.'],WB:['Beşli hatta düş, rakip kanadı karşıla.','Tüm kanadı sen kullanırsın; genişliği sen verirsin.'],DM:['Stoperlerin önünü koru, pas yollarını kapat.','Stoperlerin arasına ya da önüne gel, oyunu yönlendir.'],CM:['Kompakt kal, merkezi kapat, baskıyı başlat.','Yarı alanlarda pas açısı ver, ceza sahasına koş.'],AM:['Rakibin 6 numarasını gölgende tut.','Hatlar arasında top iste, son pası ara.'],W:['Bekinin önünü kapat, rakip beki takip et.','Bekin bindirmesine göre çizgide kal ya da içeri kat et.'],ST:['Baskıyı başlat, oyunu bir kanada yönlendir.','Stoperleri meşgul et, savunma arkasına koş.']},
+de:{GK:['Raum hinter der Kette sichern und die Kette dirigieren.','Im Aufbau mitspielen, kurze und lange Option sehen.'],CB:['Kette gemeinsam halten, den Stürmer kontrollieren.','Breit machen, andribbeln oder linienbrechend passen.'],FB:['Flügel schließen, Abstand zum Innenverteidiger halten.','Hinterlaufen. Zieht der Flügel nach innen, gehört dir die Linie.'],WB:['In die Fünferkette fallen, Flügelspieler stellen.','Du gibst die Breite über die ganze Seite.'],DM:['Raum vor der Abwehr schützen, Passwege schließen.','Zwischen oder vor die Innenverteidiger kommen, Spiel lenken.'],CM:['Kompakt bleiben, Zentrum schließen, Pressing auslösen.','In den Halbräumen anbieten, in den Strafraum starten.'],AM:['Den gegnerischen Sechser im Deckungsschatten halten.','Zwischen den Linien anbieten, den letzten Pass suchen.'],W:['Vor dem Außenverteidiger schließen, gegnerischen AV verfolgen.','Je nach Hinterlaufen breit bleiben oder nach innen ziehen.'],ST:['Pressing starten, Spiel auf eine Seite lenken.','Innenverteidiger binden, in die Tiefe starten.']},
+en:{GK:['Guard the space behind the line and organise it.','Join the build-up; see the short and the long option.'],CB:['Hold the line together and control the striker.','Split wide, carry the ball or play the line-breaking pass.'],FB:['Close the flank, keep the gap to your centre-back.','Overlap. When the winger cuts inside, the touchline is yours.'],WB:['Drop into the back five and meet the winger.','You give width along the whole flank.'],DM:['Screen the back line and block passing lanes.','Drop between or ahead of the centre-backs and direct play.'],CM:['Stay compact, close the centre, trigger the press.','Offer angles in the half-spaces and run into the box.'],AM:['Keep their number 6 in your cover shadow.','Receive between the lines and look for the final pass.'],W:['Screen in front of your full-back, track their full-back.','Hold width or cut inside, depending on the overlap.'],ST:['Start the press and force play to one side.','Pin the centre-backs and run in behind.']},
+fr:{GK:['Protège l’espace derrière la ligne et organise-la.','Participe à la relance, vois l’option courte et longue.'],CB:['Tiens la ligne ensemble, contrôle l’attaquant.','Écarte-toi, conduis le ballon ou casse une ligne par la passe.'],FB:['Ferme le côté, garde la distance avec ton central.','Déborde. Si l’ailier rentre, la ligne de touche est à toi.'],WB:['Recule dans la ligne à cinq, affronte l’ailier.','Tu donnes la largeur sur tout le couloir.'],DM:['Protège la défense, ferme les lignes de passe.','Décroche entre ou devant les centraux, oriente le jeu.'],CM:['Reste compact, ferme l’axe, déclenche le pressing.','Offre des angles dans les demi-espaces, attaque la surface.'],AM:['Garde leur numéro 6 dans ton ombre.','Reçois entre les lignes, cherche la dernière passe.'],W:['Ferme devant ton latéral, suis leur latéral.','Reste large ou rentre, selon le dédoublement.'],ST:['Lance le pressing, oriente le jeu d’un côté.','Fixe les centraux, attaque la profondeur.']}
+};
+
+// ================= lessons (pitch units: x 0–68 width, y 0–105, our goal at y=105) =================
+const L=(tr,de,en,fr)=>({tr,de,en,fr});
+const LESSONS=[
+{id:'markaj',tags:['FB','CB'],view:'def',
+ title:L('Markaj: adamla kale arasında dur','Deckung: zwischen Gegner und Tor','Marking: stay goal-side','Marquage : entre l’adversaire et le but'),
+ sum:L('İç omuz, doğru mesafe, hem adamı hem topu görmek.','Innere Schulter, richtiger Abstand, Mann und Ball sehen.','Inside shoulder, right distance, see man and ball.','Épaule intérieure, bonne distance, voir l’homme et le ballon.'),
+ actors:[['2','us',54,76],['5','us',42,79],['4','us',28,79],['M','op',38,57],['W','op',58,68]],ball:'M',
+ intro:{txt:L('Rakip kanat topsuz. Bek (2) onu kontrol ediyor.','Der gegnerische Flügel ist ohne Ball. Außenverteidiger (2) kontrolliert ihn.','Their winger is off the ball. Full-back (2) is watching him.','L’ailier adverse est sans ballon. Le latéral (2) le surveille.')},
+ good:[
+  {p:{M:[41,60],W:[59,71],'2':[55,76]},arrows:[[59,71,34,105,'guide']],txt:L('Doğru konum: adamla kale arasında, iç omuzda. Hem adamı hem topu görüyorsun.','Richtig: zwischen Gegner und Tor, an der inneren Schulter. Du siehst Mann und Ball.','Right: between man and goal, on his inside shoulder. You see man and ball.','Juste : entre l’homme et le but, à l’épaule intérieure. Tu vois l’homme et le ballon.')},
+  {p:{W:[59,73],'2':[57,76]},ball:'W',arrows:[[41,60,59,73,'pass']],txt:L('Pas yoldayken yaklaş. Top ayağa geldiğinde bir kol mesafesindesin.','Rück heran, solange der Pass unterwegs ist. Bei der Annahme bist du eine Armlänge entfernt.','Close in while the pass travels. When it arrives you are an arm’s length away.','Approche pendant que la passe voyage. À la réception, tu es à une longueur de bras.')},
+  {p:{W:[62,82],'2':[59,83]},arrows:[[59,73,62,82,'run']],txt:L('İçeriyi kapattığın için rakip dışarı, daha az tehlikeli bölgeye gidiyor.','Weil du innen zu machst, muss er nach außen in die ungefährlichere Zone.','Because you shut the inside, he has to go wide, into less danger.','Comme tu fermes l’intérieur, il doit partir à l’extérieur, moins dangereux.')}],
+ bad:[
+  {p:{M:[41,60],W:[60,80],'2':[50,74]},arrows:[[59,68,60,80,'run']],txt:L('Hata: bek sadece topa bakıyor. Adam arkasına koşuyor.','Fehler: Der AV schaut nur auf den Ball. Der Gegner läuft in seinen Rücken.','Mistake: the full-back only watches the ball. His man runs in behind.','Erreur : le latéral ne regarde que le ballon. Son joueur file dans son dos.')},
+  {p:{W:[60,85],'2':[54,80]},ball:'W',arrows:[[41,60,60,85,'pass']],txt:L('Pas savunma arkasına gidiyor. Bek yarışı geride başlıyor.','Der Pass geht hinter die Abwehr. Der AV startet das Laufduell von hinten.','The pass goes in behind. The full-back starts the race from behind.','La passe part dans le dos. Le latéral démarre la course en retard.')},
+  {p:{W:[48,93],'2':[54,88]},arrows:[[60,85,48,93,'run']],txt:L('Rakip kaleye doğru serbest kalıyor.','Der Gegner läuft frei aufs Tor zu.','He is free, heading for goal.','Il est libre et file vers le but.')}]},
+
+{id:'alan',tags:['CB','FB','DM'],view:'def',
+ title:L('Alan savunması: dörtlü kayma','Raumdeckung: die Viererkette verschieben','Zonal defending: the back four shift','Défense de zone : la ligne de quatre coulisse'),
+ sum:L('Top kanada gidince hat birlikte kayar, uzak bek içeri daralır.','Geht der Ball auf den Flügel, verschiebt die Kette, der ballferne AV rückt ein.','Ball goes wide, the line shifts together and the far full-back tucks in.','Ballon sur le côté : la ligne coulisse, le latéral opposé resserre.'),
+ actors:[['3','us',14,78],['4','us',28,80],['5','us',40,80],['2','us',54,78],['6','us',34,69],['M','op',34,57],['R','op',20,66],['A','op',60,62]],ball:'M',
+ intro:{txt:L('Dörtlü savunma ve 6 numara topun konumuna göre birlikte hareket eder.','Viererkette und Sechser bewegen sich gemeinsam nach der Ballposition.','The back four and the 6 move together according to where the ball is.','La ligne de quatre et le 6 bougent ensemble selon la position du ballon.')},
+ good:[
+  {p:{A:[60,64],'2':[57,70],'5':[46,77],'4':[35,79],'3':[25,78],'6':[42,68]},ball:'A',arrows:[[34,57,60,64,'pass']],txt:L('Top kanada gidiyor. Bek (2) baskıya çıkar, diğerleri topa doğru kayar, uzak bek (3) içeri daralır.','Der Ball geht auf den Flügel. AV (2) presst, die anderen verschieben, der ballferne AV (3) rückt ein.','The ball goes wide. Full-back (2) presses, the rest shift across, the far full-back (3) tucks in.','Le ballon va sur le côté. Le latéral (2) presse, les autres coulissent, le latéral opposé (3) resserre.')},
+  {p:{R:[22,82],'3':[23,82]},arrows:[[20,66,22,82,'run']],txt:L('Arkaya koşan rakip, içeri daralmış bek tarafından karşılanıyor.','Der Läufer in die Tiefe wird vom eingerückten AV aufgenommen.','The runner in behind is picked up by the tucked-in full-back.','Le coureur dans la profondeur est pris par le latéral resserré.')},
+  {p:{A:[62,60],M:[36,56],'2':[54,76],'5':[40,80],'4':[28,80],'3':[16,79],'6':[34,69]},ball:'M',arrows:[[60,64,36,56,'pass']],txt:L('Top geri merkeze gelince hat yeniden ortalanır. Aralar 8–10 metreyi geçmez.','Kommt der Ball zurück ins Zentrum, zentriert sich die Kette wieder. Abstände bleiben bei 8–10 Metern.','When the ball returns centrally, the line re-centres. Gaps stay at 8–10 metres.','Ballon de retour dans l’axe : la ligne se recentre. Les écarts restent de 8 à 10 m.')}],
+ bad:[
+  {p:{A:[60,64],'2':[57,70],'5':[46,77],'4':[30,80],'3':[12,78],'6':[42,68]},ball:'A',arrows:[[34,57,60,64,'pass']],zone:[22,80,5,'bad'],txt:L('Hata: uzak bek (3) geniş kalıyor. Stoperle arasında boşluk açılıyor.','Fehler: Der ballferne AV (3) bleibt breit. Zwischen ihm und dem IV entsteht eine Lücke.','Mistake: the far full-back (3) stays wide. A gap opens next to the centre-back.','Erreur : le latéral opposé (3) reste large. Un trou s’ouvre à côté du central.')},
+  {p:{R:[22,84]},arrows:[[20,66,22,84,'run']],zone:[22,82,5,'bad'],txt:L('Rakip tam o boşluğa koşuyor.','Der Gegner läuft genau in diese Lücke.','The opponent runs straight into that gap.','L’adversaire attaque exactement ce trou.')},
+  {p:{R:[26,92]},ball:'R',arrows:[[60,64,22,84,'pass']],txt:L('Çapraz pas boşluğu buluyor. Kayma eksik kaldı.','Der Diagonalball findet die Lücke. Das Verschieben war unvollständig.','The diagonal ball finds the gap. The shift was incomplete.','Le ballon en diagonale trouve le trou. Le coulissement était incomplet.')}]},
+
+{id:'adam',tags:['CB'],view:'def',
+ title:L('Adam adama savunma','Manndeckung','Man-to-man defending','Défense individuelle'),
+ sum:L('Herkes bir rakibe bağlı; çapraz koşuda adamını bırakma.','Jeder hat seinen Gegner; bei Kreuzläufen nicht loslassen.','Everyone has a man; don’t lose him on crossing runs.','Chacun son joueur ; ne le lâche pas sur les courses croisées.'),
+ actors:[['4','us',28,80],['5','us',40,80],['X','op',38,74],['Y','op',27,73],['M','op',34,56]],ball:'M',
+ intro:{txt:L('İki stoper de bir rakibe bağlı. Rakip nereye giderse takip eder.','Beide IV haben einen festen Gegenspieler und folgen ihm überallhin.','Each centre-back has one man and follows him wherever he goes.','Chaque central a son joueur et le suit partout.')},
+ good:[
+  {p:{X:[24,82],Y:[44,77],'5':[26,85],'4':[43,81]},arrows:[[38,74,24,82,'run'],[27,73,44,77,'run']],txt:L('Rakipler çapraz koşuyor. Her savunmacı kendi adamını bırakmadan, kale tarafında takip ediyor.','Die Gegner kreuzen. Jeder Verteidiger bleibt torseitig an seinem Mann.','They cross their runs. Each defender stays goal-side of his own man.','Ils croisent leurs courses. Chaque défenseur reste côté but de son joueur.')},
+  {p:{M:[34,59]},txt:L('İki pas yolu da kapalı. Topçunun ileri pas seçeneği kalmıyor.','Beide Passwege sind zu. Der Ballführende hat keinen Pass nach vorn.','Both passing lanes are shut. The man on the ball has no forward pass.','Les deux lignes de passe sont fermées. Le porteur n’a pas de passe vers l’avant.')},
+  {txt:L('Değişim yapılacaksa yüksek sesle söyle: “Sende!” Adam adama savunmada konuşmak şart.','Wird übergeben, laut sagen: „Deiner!“ Ohne Kommunikation geht Manndeckung nicht.','If you switch men, say it loud: “Yours!” Man-marking needs talking.','Si vous échangez, dis-le fort : « À toi ! » Sans parler, pas d’individuelle.')}],
+ bad:[
+  {p:{X:[24,82],Y:[44,77],'5':[26,85],'4':[30,83]},arrows:[[38,74,24,82,'run'],[27,73,44,77,'run']],zone:[44,77,5,'bad'],txt:L('Hata: iki stoper de aynı oyuncuya kayıyor. Diğer rakip boşta kalıyor.','Fehler: Beide IV gehen zum selben Spieler. Der andere bleibt frei.','Mistake: both centre-backs drift to the same man. The other one is free.','Erreur : les deux centraux suivent le même joueur. L’autre est libre.')},
+  {p:{Y:[44,79]},ball:'Y',arrows:[[34,56,44,79,'pass']],txt:L('Pas boştaki oyuncuya gidiyor.','Der Pass geht zum freien Spieler.','The pass goes to the free man.','La passe va au joueur libre.')},
+  {p:{Y:[40,90]},arrows:[[44,79,40,90,'run']],txt:L('Kaleciyle karşı karşıya.','Allein vor dem Torwart.','One-on-one with the keeper.','Seul face au gardien.')}]},
+
+{id:'doldurma',tags:['CB','FB','DM'],view:'def',
+ title:L('Baskıya çıkanın yerini doldurmak','Den Raum des Herausrückenden schließen','Cover the player who steps out','Couvrir celui qui sort'),
+ sum:L('Stoper öne çıkınca diğer stoper ve bek içeri kayar.','Rückt ein IV heraus, schieben IV und AV ein.','When a centre-back steps out, the other CB and full-back slide in.','Quand un central sort, l’autre central et le latéral glissent.'),
+ actors:[['3','us',14,78],['4','us',28,80],['5','us',40,80],['2','us',54,78],['6','us',30,68],['X','op',38,72],['Z','op',50,63],['M','op',30,52]],ball:'M',
+ intro:{txt:L('Rakip forvet top almak için aşağı geliyor.','Der gegnerische Stürmer kommt entgegen, um den Ball zu holen.','Their striker drops short to get the ball.','L’attaquant adverse décroche pour recevoir.')},
+ good:[
+  {p:{X:[38,66],'5':[38,70],'4':[35,79],'2':[47,78],'3':[22,78]},ball:'X',arrows:[[30,52,38,66,'pass'],[40,80,38,70,'press']],zone:[40,80,4,'good'],txt:L('Stoper (5) baskıya çıkıyor. Diğer stoper (4) ve bek (2) içeri kayarak boşluğu dolduruyor.','IV (5) rückt heraus. IV (4) und AV (2) schieben ein und schließen den Raum.','Centre-back (5) steps out. CB (4) and full-back (2) slide in to fill the space.','Le central (5) sort. Le central (4) et le latéral (2) glissent pour combler.')},
+  {p:{Z:[44,78],'2':[45,80]},arrows:[[50,63,44,78,'run']],txt:L('Boşluğa koşan rakip, kayan bek tarafından karşılanıyor.','Der Läufer in die Lücke wird vom eingeschobenen AV aufgenommen.','The runner into the gap meets the full-back who slid across.','Le coureur dans le trou trouve le latéral qui a glissé.')},
+  {p:{X:[36,62],'5':[40,79],'4':[29,80],'2':[52,78],'3':[15,78],Z:[50,70]},ball:'M',arrows:[[38,66,30,52,'pass']],txt:L('Baskı bitince stoper hemen hatta geri döner, herkes yerine kayar.','Nach dem Pressing kehrt der IV sofort in die Kette zurück, alle schieben zurück.','Once the press ends, the centre-back drops straight back and everyone resets.','Une fois le pressing fini, le central revient et chacun reprend sa place.')}],
+ bad:[
+  {p:{X:[38,66],'5':[38,70]},ball:'X',arrows:[[30,52,38,66,'pass'],[40,80,38,70,'press']],zone:[42,79,5,'bad'],txt:L('Hata: stoper baskıya çıktı ama kimse yerini doldurmadı.','Fehler: Der IV ist herausgerückt, aber niemand schließt seinen Raum.','Mistake: the centre-back stepped out, but nobody filled his space.','Erreur : le central est sorti, mais personne ne comble.')},
+  {p:{Z:[42,82]},arrows:[[50,63,42,82,'run']],txt:L('Rakip, stoperin bıraktığı boşluğa koşuyor.','Der Gegner läuft in den Raum, den der IV verlassen hat.','The opponent runs into the space the centre-back left.','L’adversaire attaque l’espace laissé par le central.')},
+  {p:{Z:[40,91]},ball:'Z',arrows:[[38,66,42,82,'pass']],txt:L('Tek pasla kale önünde boş adam.','Ein Pass, und ein Gegner steht frei vor dem Tor.','One pass and a man is free in front of goal.','Une passe et un joueur est seul devant le but.')}]},
+
+{id:'hat',tags:['CB','FB'],view:'def',
+ title:L('Ofsayt hattı: birlikte çık','Abseitslinie: gemeinsam herausrücken','Offside line: step up together','Ligne du hors-jeu : monter ensemble'),
+ sum:L('Top geri gidince hat aynı anda öne çıkar; geride kalan herkesi oyunda tutar.','Geht der Ball zurück, rückt die Kette gleichzeitig heraus.','Ball goes back, the line steps up at once; one player left deep plays everyone on.','Ballon en retrait : la ligne monte en même temps.'),
+ actors:[['3','us',14,82],['4','us',28,83],['5','us',40,83],['2','us',54,82],['X','op',38,80],['Y','op',22,80],['M','op',34,60],['N','op',34,46]],ball:'M',
+ intro:{line:[82.5,'good'],txt:L('Dört savunmacı aynı hizada. Hat düz.','Alle vier Verteidiger auf einer Höhe. Die Kette steht gerade.','All four defenders level. The line is straight.','Les quatre défenseurs sont alignés. La ligne est droite.')},
+ good:[
+  {p:{'3':[14,74],'4':[28,74],'5':[40,74],'2':[54,74]},ball:'N',line:[74,'good'],arrows:[[34,60,34,46,'pass']],txt:L('Top geri gidince hat birlikte öne çıkıyor. Forvetler ofsayt pozisyonunda kalıyor.','Der Ball geht zurück, die Kette rückt gemeinsam heraus. Die Stürmer stehen im Abseits.','The ball goes back, the line steps up together. The strikers are left offside.','Le ballon revient, la ligne monte ensemble. Les attaquants restent hors-jeu.')},
+  {ball:[30,88],line:[74,'good'],arrows:[[34,46,30,88,'pass']],txt:L('Uzun top geliyor ama iki forvet de ofsayt. Hakem bayrağı kaldırır.','Der lange Ball kommt, aber beide Stürmer stehen im Abseits.','The long ball comes, but both strikers are offside.','Le ballon long arrive, mais les deux attaquants sont hors-jeu.')}],
+ bad:[
+  {p:{'3':[14,84],'4':[28,74],'5':[40,74],'2':[54,74]},ball:'N',line:[84,'bad'],arrows:[[34,60,34,46,'pass']],zone:[14,84,4,'bad'],txt:L('Hata: bir savunmacı (3) geride kaldı. Tüm rakipleri oyunda tutuyor.','Fehler: Ein Verteidiger (3) bleibt hinten und hebt das Abseits für alle auf.','Mistake: one defender (3) stays deep and plays everyone onside.','Erreur : un défenseur (3) reste bas et met tout le monde en jeu.')},
+  {p:{Y:[20,90]},ball:'Y',line:[84,'bad'],arrows:[[34,46,20,90,'pass'],[22,80,20,90,'run']],txt:L('Forvet onsayt ve kaleye yalnız gidiyor.','Der Stürmer ist nicht im Abseits und läuft allein aufs Tor.','The striker is onside and runs through alone.','L’attaquant est en jeu et part seul au but.')}]},
+
+{id:'yonlendirme',tags:['FB','W'],view:'def',
+ title:L('Kanatta 1’e 1: dışarı yönlendir','1 gegen 1 am Flügel: nach außen lenken','1v1 on the wing: show him outside','1 contre 1 sur l’aile : pousser à l’extérieur'),
+ sum:L('İç tarafta dur, gövdeni çapraz aç, rakibi çizgiye zorla.','Innen stehen, Körper seitlich öffnen, zur Linie zwingen.','Stand inside, open your body, force him to the line.','Reste à l’intérieur, oriente ton corps, pousse-le vers la ligne.'),
+ actors:[['3','us',14,76],['4','us',28,82],['W','op',12,62]],ball:'W',
+ intro:{txt:L('Rakip kanat topla beke doğru geliyor.','Der gegnerische Flügelspieler dribbelt auf den AV zu.','Their winger runs at the full-back with the ball.','L’ailier adverse arrive balle au pied sur le latéral.')},
+ good:[
+  {p:{W:[12,67],'3':[16,72]},arrows:[[16,72,8,80,'guide']],txt:L('Bek iç tarafta duruyor, gövdesini çapraz açıyor ve rakibi çizgiye yönlendiriyor.','Der AV steht innen, öffnet den Körper seitlich und lenkt nach außen.','The full-back stands inside, opens his body and shows him down the line.','Le latéral se place à l’intérieur, ouvre son corps et oriente vers la ligne.')},
+  {p:{W:[5,80],'3':[9,81]},arrows:[[12,67,5,80,'run']],txt:L('Rakip dışarı gitmek zorunda. Kaleyle açısı daralıyor.','Der Gegner muss nach außen. Sein Winkel zum Tor wird kleiner.','He has to go outside. His angle to goal gets smaller.','Il doit partir dehors. Son angle vers le but se réduit.')},
+  {p:{W:[3,88],'3':[6,88]},ball:[-1,92],txt:L('Ya top dışarı çıkıyor ya da zor bir açıdan orta yapmak zorunda.','Der Ball geht ins Aus oder er muss aus schlechtem Winkel flanken.','Either the ball goes out or he has to cross from a poor angle.','Soit le ballon sort, soit il centre dans un angle difficile.')}],
+ bad:[
+  {p:{W:[12,67],'3':[10,72]},zone:[20,76,4,'bad'],txt:L('Hata: bek dış tarafta duruyor. İç yol açık.','Fehler: Der AV steht außen. Der Weg nach innen ist offen.','Mistake: the full-back stands outside him. The inside is open.','Erreur : le latéral est côté extérieur. L’intérieur est ouvert.')},
+  {p:{W:[22,78],'3':[13,76]},arrows:[[12,67,22,78,'run']],txt:L('Rakip içeri kat ediyor ve kaleye dönük tehlikeli bölgeye giriyor.','Der Gegner zieht nach innen in die gefährliche Zone vor dem Tor.','He cuts inside, into the dangerous area facing goal.','Il repique vers l’intérieur, dans la zone dangereuse face au but.')},
+  {ball:[32,104],arrows:[[22,78,32,104,'pass']],txt:L('Rahat şut çekebiliyor.','Er kann frei schießen.','He gets a free shot.','Il peut frapper librement.')}]}
+];
+
+// ================= formations (def block / attacking shape) =================
+const FORM={
+'4-1-4-1':[['GK',34,100,34,96],['FB',12,72,6,40],['CB',27,75,22,70],['CB',41,75,46,70],['FB',56,72,62,40],['DM',34,64,34,58],['W',12,55,18,24],['CM',26,54,24,36],['CM',42,54,44,36],['W',56,55,50,24],['ST',34,42,34,16]],
+'4-2-3-1':[['GK',34,100,34,96],['FB',12,72,6,42],['CB',27,75,22,72],['CB',41,75,46,72],['FB',56,72,62,42],['DM',27,64,28,58],['DM',41,64,40,54],['W',12,52,16,24],['AM',34,50,34,30],['W',56,52,52,24],['ST',34,42,34,16]],
+'4-4-2':[['GK',34,100,34,96],['FB',12,72,8,46],['CB',27,75,22,72],['CB',41,75,46,72],['FB',56,72,60,46],['W',12,56,10,26],['CM',27,58,28,50],['CM',41,58,40,44],['W',56,56,58,26],['ST',28,44,28,18],['ST',40,44,40,20]],
+'4-3-3':[['GK',34,100,34,96],['FB',12,72,8,42],['CB',27,75,22,72],['CB',41,75,46,72],['FB',56,72,60,42],['DM',34,63,34,58],['CM',25,56,24,36],['CM',43,56,44,36],['W',12,46,6,20],['W',56,46,62,20],['ST',34,42,34,16]],
+'3-5-2':[['GK',34,100,34,96],['WB',8,72,6,32],['CB',20,75,16,66],['CB',34,77,34,72],['CB',48,75,52,66],['WB',60,72,62,32],['DM',34,63,34,54],['CM',24,58,24,40],['CM',44,58,44,40],['ST',28,44,28,18],['ST',40,44,40,20]]
+};
+
+// ================= app state =================
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let lang=store.get('ttsc_lang')||((navigator.language||'tr').slice(0,2));if(!UI[lang])lang='tr';
+const $=id=>document.getElementById(id);
+const t=k=>(UI[lang][k]||UI.tr[k]||k);
+const loc=o=>o?(o[lang]||o.tr):'';
+let filter='all',cur=null,variant='good',step=0,anim=1,playing=false,hold=0,formation=store.get('ttsc_taktik_form')||'4-1-4-1',phase=0,fk=1,sel=-1;
+if(!FORM[formation])formation='4-1-4-1';
+
+function applyLang(){document.documentElement.lang=lang;document.querySelectorAll('[data-i]').forEach(el=>el.textContent=t(el.dataset.i));$('lang').value=lang;renderList();renderFChips();if(cur)renderLessonText();renderRole()}
+
+// ---------- list ----------
+function renderList(){
+  const used=['all',...new Set(LESSONS.flatMap(l=>l.tags))];
+  $('chips').innerHTML='';
+  used.forEach(r=>{const b=document.createElement('button');b.className='chip';b.textContent=r==='all'?t('all'):ROLE[lang][r][0];b.setAttribute('aria-pressed',filter===r);b.onclick=()=>{filter=r;renderList()};$('chips').appendChild(b)});
+  const list=LESSONS.filter(l=>filter==='all'||l.tags.includes(filter));
+  $('count').textContent=t('lessonsN').replace('{n}',list.length);
+  $('grid').innerHTML='';
+  list.forEach(l=>{const b=document.createElement('button');b.className='lcard';
+    b.innerHTML=`<span class="tags">${l.tags.map(g=>`<span class="tag">${ROLE[lang][g][1]}</span>`).join('')}</span><b></b><p></p>`;
+    b.querySelector('b').textContent=loc(l.title);b.querySelector('p').textContent=loc(l.sum);
+    b.onclick=()=>{location.hash='ders-'+l.id};$('grid').appendChild(b)});
+}
+
+// ---------- routing ----------
+function route(){
+  const h=location.hash.slice(1);
+  const lesson=h.startsWith('ders-')?LESSONS.find(l=>'ders-'+l.id===h):null;
+  $('vList').hidden=!!lesson||h==='dizilis';$('vLesson').hidden=!lesson;$('vForm').hidden=h!=='dizilis';
+  $('tabL').setAttribute('aria-selected',h!=='dizilis');$('tabF').setAttribute('aria-selected',h==='dizilis');
+  if(lesson)openLesson(lesson);else{cur=null;playing=false}
+  if(h==='dizilis'){fk=1;sizeAll()}
+}
+window.addEventListener('hashchange',route);
+$('tabL').onclick=()=>{location.hash='dersler'};$('tabF').onclick=()=>{location.hash='dizilis'};
+$('back').onclick=()=>{location.hash='dersler'};
+
+// ---------- lesson engine ----------
+function steps(){return[cur.intro,...cur[variant]]}
+function stateAt(i){
+  const pos={};cur.actors.forEach(a=>pos[a[0]]=[a[2],a[3]]);let ball=cur.ball,line=null;
+  const s=steps();for(let j=0;j<=i;j++){const st=s[j];if(st.p)for(const k in st.p)pos[k]=st.p[k];if(st.ball!==undefined)ball=st.ball;line=st.line||null}
+  return{pos,ball,line};
+}
+function openLesson(l){
+  const same=cur===l;cur=l;if(!same){variant='bad';step=0;anim=1;playing=false}
+  sizeAll();renderLessonText();
+}
+function renderLessonText(){
+  $('lTitle').textContent=loc(cur.title);
+  $('vBad').setAttribute('aria-pressed',variant==='bad');$('vGood').setAttribute('aria-pressed',variant==='good');
+  const s=steps();const n=$('narr');n.className='narr '+(step===0?'':variant);
+  n.innerHTML=`<span class="k">${t('step')} ${step+1}/${s.length} · ${variant==='bad'?t('wrong'):t('right')}</span><span></span>`;n.lastChild.textContent=loc(s[step].txt);
+  $('dots').innerHTML=s.map((_,i)=>`<span class="dot${i<=step?' on':''}"></span>`).join('');
+  $('prev').disabled=step===0;$('next').disabled=step>=s.length-1;
+  $('play').textContent=playing?t('pause'):(step>=s.length-1?t('again'):t('play'));
+}
+function go(i){const s=steps();i=Math.max(0,Math.min(s.length-1,i));if(i===step)return;step=i;anim=0;hold=0;renderLessonText()}
+$('prev').onclick=()=>{playing=false;go(step-1)};
+$('next').onclick=()=>{playing=false;go(step+1)};
+$('play').onclick=()=>{const s=steps();if(playing){playing=false}else{if(step>=s.length-1){step=0;anim=1}playing=true;hold=0}renderLessonText()};
+$('vBad').onclick=()=>{variant='bad';step=0;anim=1;playing=true;hold=0;renderLessonText()};
+$('vGood').onclick=()=>{variant='good';step=0;anim=1;playing=true;hold=0;renderLessonText()};
+
+// ---------- canvas ----------
+const VIEWS={def:[-2,48,70,107],full:[-3,-3,71,108]};
+const cvL=$('cvL'),cvF=$('cvF'),gL=cvL.getContext('2d'),gF=cvF.getContext('2d');
+function size(cv,view){const w=cv.parentElement.clientWidth||340;const v=VIEWS[view];let ar=(v[3]-v[1])/(v[2]-v[0]);let cw=w,ch=w*ar;const maxH=Math.max(320,window.innerHeight*.62);if(ch>maxH){ch=maxH;cw=ch/ar}
+  cv.style.width=cw+'px';cv.style.height=ch+'px';const d=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(cw*d);cv.height=Math.round(ch*d);cv._v=v;cv._s=cv.width/(v[2]-v[0]);cv._d=d}
+function sizeAll(){if(!$('vLesson').hidden)size(cvL,cur?cur.view:'def');if(!$('vForm').hidden)size(cvF,'full')}
+window.addEventListener('resize',sizeAll);
+const P=(cv,x,y)=>[(x-cv._v[0])*cv._s,(y-cv._v[1])*cv._s];
+function pitch(g,cv){
+  const v=cv._v;g.setTransform(1,0,0,1,0,0);g.fillStyle='#1d3a31';g.fillRect(0,0,cv.width,cv.height);
+  for(let i=0;i<14;i++){if(i%2)continue;const[a,b]=P(cv,0,i*7.5),[c,d]=P(cv,68,(i+1)*7.5);g.fillStyle='#21423a';g.fillRect(a,b,c-a,d-b)}
+  g.strokeStyle='rgba(235,245,240,.7)';g.lineWidth=1.6*cv._d;
+  const R=(x0,y0,x1,y1)=>{const[a,b]=P(cv,x0,y0),[c,d]=P(cv,x1,y1);g.strokeRect(a,b,c-a,d-b)};
+  R(0,0,68,105);R(13.84,0,54.16,16.5);R(24.84,0,43.16,5.5);R(13.84,88.5,54.16,105);R(24.84,99.5,43.16,105);
+  g.beginPath();let[a,b]=P(cv,0,52.5),[c]=P(cv,68,52.5);g.moveTo(a,b);g.lineTo(c,b);g.stroke();
+  const[cx,cy]=P(cv,34,52.5);g.beginPath();g.arc(cx,cy,9.15*cv._s,0,Math.PI*2);g.stroke();
+  for(const yy of[11,94]){const[sx,sy]=P(cv,34,yy);g.beginPath();g.arc(sx,sy,1.6*cv._d,0,Math.PI*2);g.fillStyle='rgba(235,245,240,.7)';g.fill()}
+  const[p1x,p1y]=P(cv,34,94);g.beginPath();g.arc(p1x,p1y,9.15*cv._s,Math.PI*1.21,Math.PI*1.79);g.stroke();
+  const[p2x,p2y]=P(cv,34,11);g.beginPath();g.arc(p2x,p2y,9.15*cv._s,Math.PI*.21,Math.PI*.79);g.stroke();
+  g.lineWidth=4*cv._d;for(const yy of[0,105]){const[a1,b1]=P(cv,30.34,yy),[a2]=P(cv,37.66,yy);g.beginPath();g.moveTo(a1,b1);g.lineTo(a2,b1);g.stroke()}
+}
+function disc(g,cv,x,y,team,label,hi){
+  const[px,py]=P(cv,x,y),r=11*cv._d;
+  g.fillStyle='rgba(0,0,0,.3)';g.beginPath();g.arc(px+1.5*cv._d,py+2*cv._d,r,0,Math.PI*2);g.fill();
+  g.fillStyle=team==='us'?'#ffffff':'#e4573d';g.beginPath();g.arc(px,py,r,0,Math.PI*2);g.fill();
+  if(hi){g.strokeStyle='#f5b83d';g.lineWidth=3*cv._d;g.beginPath();g.arc(px,py,r+4*cv._d,0,Math.PI*2);g.stroke()}
+  if(label){g.fillStyle=team==='us'?'#13302a':'#ffffff';g.font=`700 ${(label.length>2?9:11)*cv._d}px "Source Sans 3",sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(label,px,py+.5*cv._d)}
+}
+function arrow(g,cv,x1,y1,x2,y2,kind,alpha){
+  const[a,b]=P(cv,x1,y1),[c,d]=P(cv,x2,y2);g.globalAlpha=alpha;
+  const col=kind==='guide'?'rgba(235,245,240,.85)':'#f5b83d';g.strokeStyle=col;g.fillStyle=col;g.lineWidth=(kind==='pass'?2.6:2.2)*cv._d;
+  g.setLineDash(kind==='run'?[6*cv._d,5*cv._d]:kind==='guide'?[2*cv._d,5*cv._d]:kind==='press'?[10*cv._d,3*cv._d]:[]);
+  const ang=Math.atan2(d-b,c-a),off=14*cv._d;const ex=c-Math.cos(ang)*off,ey=d-Math.sin(ang)*off;
+  g.beginPath();g.moveTo(a,b);g.lineTo(ex,ey);g.stroke();g.setLineDash([]);
+  if(kind!=='guide'){g.beginPath();g.moveTo(ex+Math.cos(ang)*8*cv._d,ey+Math.sin(ang)*8*cv._d);g.lineTo(ex+Math.cos(ang+2.5)*7*cv._d,ey+Math.sin(ang+2.5)*7*cv._d);g.lineTo(ex+Math.cos(ang-2.5)*7*cv._d,ey+Math.sin(ang-2.5)*7*cv._d);g.fill()}
+  g.globalAlpha=1;
+}
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function ballXY(st,pos){if(typeof st.ball==='string'){const p=pos[st.ball];return[p[0]+1.1,p[1]-1.4]}return st.ball}
+function drawLesson(){
+  const g=gL,cv=cvL;if(!cv._v)return;pitch(g,cv);
+  const a=stateAt(Math.max(0,step-1)),b=stateAt(step),k=ease(Math.min(1,anim));
+  const pos={};for(const id in b.pos){const p0=a.pos[id],p1=b.pos[id];pos[id]=[p0[0]+(p1[0]-p0[0])*k,p0[1]+(p1[1]-p0[1])*k]}
+  const s=steps()[step];
+  if(b.line){const[x0,y0]=P(cv,0,b.line[0]),[x1]=P(cv,68,b.line[0]);g.strokeStyle=b.line[1]==='bad'?'#ff6b55':'#8af0c0';g.lineWidth=2*cv._d;g.setLineDash([8*cv._d,6*cv._d]);g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y0);g.stroke();g.setLineDash([])}
+  if(s.zone){const[zx,zy]=P(cv,s.zone[0],s.zone[1]);g.globalAlpha=Math.min(1,anim*1.5)*.45;g.fillStyle=s.zone[3]==='bad'?'#ff5d4a':'#5fe3a8';g.beginPath();g.arc(zx,zy,s.zone[2]*cv._s,0,Math.PI*2);g.fill();g.globalAlpha=1}
+  if(s.arrows)s.arrows.forEach(r=>arrow(g,cv,r[0],r[1],r[2],r[3],r[4],Math.min(1,.25+anim)));
+  cur.actors.forEach(ac=>{const p=pos[ac[0]];disc(g,cv,p[0],p[1],ac[1],ac[1]==='us'?ac[0]:'')});
+  const b0=ballXY(a,pos),b1=ballXY(b,pos),bx=b0[0]+(b1[0]-b0[0])*k,by=b0[1]+(b1[1]-b0[1])*k;const[px,py]=P(cv,bx,by);
+  g.fillStyle='#ffffff';g.beginPath();g.arc(px,py,4.5*cv._d,0,Math.PI*2);g.fill();g.strokeStyle='#111';g.lineWidth=1.2*cv._d;g.stroke();
+}
+
+// ---------- formations ----------
+function renderFChips(){$('fchips').innerHTML='';Object.keys(FORM).forEach(f=>{const b=document.createElement('button');b.className='chip';b.textContent=f;b.setAttribute('aria-pressed',f===formation);b.onclick=()=>{formation=f;store.set('ttsc_taktik_form',f);sel=-1;fk=1;renderFChips();renderRole()};$('fchips').appendChild(b)});
+  $('pDef').setAttribute('aria-pressed',phase===0);$('pAtt').setAttribute('aria-pressed',phase===1)}
+function setPhase(p){if(p===phase)return;phase=p;fk=0;renderFChips();renderRole()}
+$('pDef').onclick=()=>setPhase(0);$('pAtt').onclick=()=>setPhase(1);
+function fpos(i){const r=FORM[formation][i],k=ease(Math.min(1,fk));const from=phase===1?[r[1],r[2]]:[r[3],r[4]],to=phase===1?[r[3],r[4]]:[r[1],r[2]];return[from[0]+(to[0]-from[0])*k,from[1]+(to[1]-from[1])*k]}
+function drawForm(){const g=gF,cv=cvF;if(!cv._v)return;pitch(g,cv);
+  FORM[formation].forEach((r,i)=>{const p=fpos(i);disc(g,cv,p[0],p[1],'us',ROLE[lang][r[0]][1],i===sel)})}
+function renderRole(){const box=$('role');if(sel<0){box.textContent=t('tapHint');return}const r=FORM[formation][sel][0];
+  box.innerHTML='<b></b><br><span></span>';box.firstChild.textContent=ROLE[lang][r][0]+' · '+(phase?t('attack'):t('defense'));box.lastChild.textContent=JOB[lang][r][phase]}
+cvF.addEventListener('pointerdown',e=>{const rc=cvF.getBoundingClientRect();const mx=(e.clientX-rc.left)*cvF._d,my=(e.clientY-rc.top)*cvF._d;let best=-1,bd=26*cvF._d;
+  FORM[formation].forEach((r,i)=>{const p=fpos(i),[px,py]=P(cvF,p[0],p[1]);const d=Math.hypot(px-mx,py-my);if(d<bd){bd=d;best=i}});sel=best;renderRole()});
+
+// ---------- loop ----------
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(cur&&!$('vLesson').hidden){if(anim<1)anim=Math.min(1,anim+dt/1.2);else if(playing){hold+=dt;const txt=loc(steps()[step].txt);if(hold>1.6+txt.length*.035){if(step<steps().length-1)go(step+1);else{playing=false;renderLessonText()}}}drawLesson()}
+  if(!$('vForm').hidden){if(fk<1)fk=Math.min(1,fk+dt/1.3);drawForm()}
+  requestAnimationFrame(loop)}
+$('lang').onchange=e=>{lang=e.target.value;store.set('ttsc_lang',lang);applyLang()};
+applyLang();route();requestAnimationFrame(loop);
+</script>
+</html>
